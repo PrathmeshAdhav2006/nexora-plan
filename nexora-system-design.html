@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Nexora System Design</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0f1117;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #60a5fa;
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      margin-bottom: 30px;
+    }
+
+    /* ── LAYERS ── */
+    .layer {
+      margin-bottom: 12px;
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 1px solid #1e293b;
+    }
+
+    .layer-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .boxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    /* ── BOX ── */
+    .box {
+      border-radius: 10px;
+      padding: 12px 16px;
+      min-width: 130px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      position: relative;
+    }
+
+    .box .icon {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .box .label {
+      display: block;
+    }
+
+    .box .sub {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      margin-top: 4px;
+      opacity: 0.75;
+    }
+
+    .box .tag {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 20px;
+      margin-top: 5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── COLOURS ── */
+    /* Client layer */
+    .l-client {
+      background: #0f172a;
+    }
+
+    .l-client .layer-title {
+      color: #7dd3fc;
+    }
+
+    .c-client {
+      background: #1e3a5f;
+      border-color: #3b82f6;
+      color: #bfdbfe;
+    }
+
+    /* Gateway */
+    .l-gateway {
+      background: #1a1040;
+    }
+
+    .l-gateway .layer-title {
+      color: #a78bfa;
+    }
+
+    .c-gateway {
+      background: #2d1b69;
+      border-color: #7c3aed;
+      color: #ddd6fe;
+    }
+
+    /* Security */
+    .l-security {
+      background: #1a0f2e;
+    }
+
+    .l-security .layer-title {
+      color: #f472b6;
+    }
+
+    .c-security {
+      background: #3b0764;
+      border-color: #ec4899;
+      color: #fbcfe8;
+    }
+
+    /* Spring Boot */
+    .l-spring {
+      background: #0f2318;
+    }
+
+    .l-spring .layer-title {
+      color: #4ade80;
+    }
+
+    .c-spring {
+      background: #14532d;
+      border-color: #16a34a;
+      color: #bbf7d0;
+    }
+
+    .c-spring-admin {
+      background: #1c3a1c;
+      border-color: #22c55e;
+      color: #dcfce7;
+    }
+
+    /* Data */
+    .l-data {
+      background: #1a1207;
+    }
+
+    .l-data .layer-title {
+      color: #fbbf24;
+    }
+
+    .c-postgres {
+      background: #3b2c00;
+      border-color: #f59e0b;
+      color: #fde68a;
+    }
+
+    .c-redis {
+      background: #3b0f0f;
+      border-color: #ef4444;
+      color: #fecaca;
+    }
+
+    /* External */
+    .l-ext {
+      background: #0f1a2e;
+    }
+
+    .l-ext .layer-title {
+      color: #38bdf8;
+    }
+
+    .c-ext {
+      background: #0c2a4a;
+      border-color: #0ea5e9;
+      color: #bae6fd;
+    }
+
+    /* DevOps */
+    .l-devops {
+      background: #1a0f0f;
+    }
+
+    .l-devops .layer-title {
+      color: #fb923c;
+    }
+
+    .c-devops {
+      background: #3b1a00;
+      border-color: #f97316;
+      color: #fed7aa;
+    }
+
+    /* ── ARROWS ── */
+    .arrow {
+      text-align: center;
+      font-size: 22px;
+      color: #475569;
+      margin: 4px 0;
+      line-height: 1;
+    }
+
+    .arrow span {
+      font-size: 11px;
+      color: #64748b;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ── FLOW SECTION ── */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .flow-card {
+      background: #0f1117;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .flow-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .step-num {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── PHASE TIMELINE ── */
+    .timeline {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .phase {
+      flex: 1;
+      min-width: 120px;
+      background: #0f1117;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 11px;
+    }
+
+    .phase h4 {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .phase ul {
+      list-style: none;
+    }
+
+    .phase ul li {
+      margin-bottom: 4px;
+      color: #94a3b8;
+    }
+
+    .phase ul li::before {
+      content: "→ ";
+      color: #60a5fa;
+    }
+
+    /* ── TECH STACK ── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .stack-item {
+      background: #0f1117;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+
+    .stack-item .s-label {
+      color: #94a3b8;
+      font-size: 10px;
+    }
+
+    .stack-item .s-value {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-blue {
+      background: #1e3a5f;
+      color: #60a5fa;
+    }
+
+    .badge-green {
+      background: #14532d;
+      color: #4ade80;
+    }
+
+    .badge-red {
+      background: #3b0f0f;
+      color: #f87171;
+    }
+
+    .badge-yellow {
+      background: #3b2c00;
+      color: #fbbf24;
+    }
+
+    .badge-purple {
+      background: #2d1b69;
+      color: #a78bfa;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>⚡ NEXORA</h1>
+  <p class="subtitle">Production-Grade E-Commerce Backend — System Design</p>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 1 — CLIENTS
+═══════════════════════════════════════════ -->
+  <div class="layer l-client">
+    <div class="layer-title">🖥️ Client Layer</div>
+    <div class="boxes">
+      <div class="box c-client">
+        <span class="icon">🌐</span>
+        <span class="label">Web App</span>
+        <span class="sub">React / Next.js</span>
+      </div>
+      <div class="box c-client">
+        <span class="icon">📱</span>
+        <span class="label">Mobile App</span>
+        <span class="sub">Android / iOS</span>
+      </div>
+      <div class="box c-client">
+        <span class="icon">🔧</span>
+        <span class="label">Postman / Swagger</span>
+        <span class="sub">API Testing</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕<span>HTTPS — Port 443</span></div>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 2 — API GATEWAY / NGINX
+═══════════════════════════════════════════ -->
+  <div class="layer l-gateway">
+    <div class="layer-title">🚪 Entry Point</div>
+    <div class="boxes">
+      <div class="box c-gateway">
+        <span class="icon">⚖️</span>
+        <span class="label">Nginx</span>
+        <span class="sub">Reverse Proxy</span>
+        <span class="tag" style="background:#4c1d95;color:#ddd6fe;">SSL Termination</span>
+      </div>
+      <div class="box c-gateway">
+        <span class="icon">🛡️</span>
+        <span class="label">Rate Limiter</span>
+        <span class="sub">100 req/min per IP</span>
+        <span class="tag" style="background:#4c1d95;color:#ddd6fe;">DDoS Protection</span>
+      </div>
+      <div class="box c-gateway">
+        <span class="icon">📋</span>
+        <span class="label">Swagger UI</span>
+        <span class="sub">/swagger-ui.html</span>
+        <span class="tag" style="background:#4c1d95;color:#ddd6fe;">API Docs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕<span>HTTP — Port 8080</span></div>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 3 — SECURITY FILTER CHAIN
+═══════════════════════════════════════════ -->
+  <div class="layer l-security">
+    <div class="layer-title">🔐 Spring Security Filter Chain</div>
+    <div class="boxes">
+      <div class="box c-security">
+        <span class="icon">🔒</span>
+        <span class="label">CORS Filter</span>
+        <span class="sub">Origin validation</span>
+      </div>
+      <div class="box c-security">
+        <span class="icon">🪙</span>
+        <span class="label">JWT Auth Filter</span>
+        <span class="sub">Token validate</span>
+        <span class="tag" style="background:#831843;color:#fbcfe8;">Your Code</span>
+      </div>
+      <div class="box c-security">
+        <span class="icon">🗂️</span>
+        <span class="label">Security Context</span>
+        <span class="sub">Stores current user</span>
+      </div>
+      <div class="box c-security">
+        <span class="icon">🚦</span>
+        <span class="label">Authorization Filter</span>
+        <span class="sub">Role check</span>
+      </div>
+      <div class="box c-security">
+        <span class="icon">⚠️</span>
+        <span class="label">Exception Handler</span>
+        <span class="sub">401 / 403</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕<span>Passes through to DispatcherServlet</span></div>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 4 — SPRING BOOT APPLICATION
+═══════════════════════════════════════════ -->
+  <div class="layer l-spring">
+    <div class="layer-title">🍃 Spring Boot Application — Nexora Backend</div>
+    <div class="boxes">
+
+      <div class="box c-spring">
+        <span class="icon">🔑</span>
+        <span class="label">Auth Module</span>
+        <span class="sub">Register · Login</span>
+        <span class="sub">OTP · Refresh Token</span>
+        <span class="tag badge-green">Phase 1</span>
+      </div>
+
+      <div class="box c-spring">
+        <span class="icon">📦</span>
+        <span class="label">Product Module</span>
+        <span class="sub">Catalog · Category</span>
+        <span class="sub">Images · Search</span>
+        <span class="tag badge-green">Phase 2</span>
+      </div>
+
+      <div class="box c-spring">
+        <span class="icon">🛒</span>
+        <span class="label">Cart Module</span>
+        <span class="sub">Add · Remove</span>
+        <span class="sub">Update · View</span>
+        <span class="tag badge-green">Phase 3</span>
+      </div>
+
+      <div class="box c-spring">
+        <span class="icon">📋</span>
+        <span class="label">Order Module</span>
+        <span class="sub">Place · Track</span>
+        <span class="sub">Cancel · History</span>
+        <span class="tag badge-green">Phase 3</span>
+      </div>
+
+      <div class="box c-spring">
+        <span class="icon">💳</span>
+        <span class="label">Payment Module</span>
+        <span class="sub">Razorpay · Webhook</span>
+        <span class="sub">Refund · Invoice</span>
+        <span class="tag badge-yellow">Phase 4</span>
+      </div>
+
+      <div class="box c-spring">
+        <span class="icon">📧</span>
+        <span class="label">Notification Module</span>
+        <span class="sub">OTP · Order emails</span>
+        <span class="sub">Async @Async</span>
+        <span class="tag badge-green">Phase 2</span>
+      </div>
+
+      <div class="box c-spring-admin">
+        <span class="icon">👑</span>
+        <span class="label">Admin Module</span>
+        <span class="sub">Users · Products</span>
+        <span class="sub">Orders · Reports</span>
+        <span class="tag badge-green">All Phases</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow">↕<span>JPA / HikariCP Connection Pool</span></div>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 5 — DATA LAYER
+═══════════════════════════════════════════ -->
+  <div class="layer l-data">
+    <div class="layer-title">🗄️ Data Layer</div>
+    <div class="boxes">
+
+      <div class="box c-postgres" style="min-width:200px;">
+        <span class="icon">🐘</span>
+        <span class="label">PostgreSQL</span>
+        <span class="sub">Primary Database</span>
+        <span class="sub">Port 5432</span>
+        <div style="margin-top:8px;font-size:10px;color:#fde68a;text-align:left;line-height:1.8;">
+          📁 users &nbsp;&nbsp; 📁 products<br>
+          📁 categories &nbsp;&nbsp; 📁 orders<br>
+          📁 order_items &nbsp;&nbsp; 📁 payments<br>
+          📁 cart &nbsp;&nbsp; 📁 addresses<br>
+          📁 refresh_tokens &nbsp;&nbsp; 📁 kyc
+        </div>
+        <span class="tag" style="background:#713f12;color:#fde68a;margin-top:8px;">Flyway Migrations</span>
+      </div>
+
+      <div class="box c-redis" style="min-width:180px;">
+        <span class="icon">⚡</span>
+        <span class="label">Redis</span>
+        <span class="sub">Cache + Session</span>
+        <span class="sub">Port 6379</span>
+        <div style="margin-top:8px;font-size:10px;color:#fecaca;text-align:left;line-height:1.8;">
+          🔑 otp:{email} → 10min TTL<br>
+          🔑 user:{email} → cache<br>
+          🔑 blacklist:{token}<br>
+          🔑 products:all → 10min<br>
+          🔑 cart:{userId}
+        </div>
+        <span class="tag" style="background:#7f1d1d;color:#fecaca;margin-top:8px;">In-Memory Store</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow">↕<span>HTTP / SMTP / REST API calls</span></div>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 6 — EXTERNAL SERVICES
+═══════════════════════════════════════════ -->
+  <div class="layer l-ext">
+    <div class="layer-title">🌍 External Services</div>
+    <div class="boxes">
+
+      <div class="box c-ext">
+        <span class="icon">💰</span>
+        <span class="label">Razorpay</span>
+        <span class="sub">Payment Gateway</span>
+        <span class="sub">UPI · Cards · NetBanking</span>
+        <span class="tag" style="background:#0c3a6b;color:#7dd3fc;">Webhook</span>
+      </div>
+
+      <div class="box c-ext">
+        <span class="icon">📬</span>
+        <span class="label">Gmail SMTP</span>
+        <span class="sub">Email Delivery</span>
+        <span class="sub">Port 587</span>
+        <span class="tag" style="background:#0c3a6b;color:#7dd3fc;">JavaMailSender</span>
+      </div>
+
+      <div class="box c-ext">
+        <span class="icon">🪣</span>
+        <span class="label">AWS S3</span>
+        <span class="sub">Product Images</span>
+        <span class="sub">Static Assets</span>
+        <span class="tag" style="background:#0c3a6b;color:#7dd3fc;">Phase 3+</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow">↕<span>Docker / Kubernetes / AWS</span></div>
+
+  <!-- ══════════════════════════════════════════
+     LAYER 7 — DEVOPS
+═══════════════════════════════════════════ -->
+  <div class="layer l-devops">
+    <div class="layer-title">🚀 DevOps Layer</div>
+    <div class="boxes">
+
+      <div class="box c-devops">
+        <span class="icon">🐳</span>
+        <span class="label">Docker</span>
+        <span class="sub">Containerize app</span>
+      </div>
+
+      <div class="box c-devops">
+        <span class="icon">⚙️</span>
+        <span class="label">GitHub Actions</span>
+        <span class="sub">CI/CD Pipeline</span>
+      </div>
+
+      <div class="box c-devops">
+        <span class="icon">☁️</span>
+        <span class="label">AWS EC2 / EKS</span>
+        <span class="sub">Deployment</span>
+      </div>
+
+      <div class="box c-devops">
+        <span class="icon">🏗️</span>
+        <span class="label">Terraform</span>
+        <span class="sub">Infrastructure as Code</span>
+      </div>
+
+      <div class="box c-devops">
+        <span class="icon">📊</span>
+        <span class="label">Prometheus + Grafana</span>
+        <span class="sub">Monitoring</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     FLOWS
+═══════════════════════════════════════════ -->
+  <div class="section-title">Key Request Flows</div>
+  <div class="flow-grid">
+
+    <!-- Register Flow -->
+    <div class="flow-card">
+      <h3 style="color:#4ade80;">🔑 Registration + OTP Flow</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:#14532d;color:#4ade80;">1</div>
+        <div>POST /api/auth/register → validate input (@Valid)</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#14532d;color:#4ade80;">2</div>
+        <div>BCrypt hash password → save UNVERIFIED user to PostgreSQL</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#14532d;color:#4ade80;">3</div>
+        <div>Generate 6-digit OTP → store in Redis with 10min TTL</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#14532d;color:#4ade80;">4</div>
+        <div>@Async → send OTP email via Gmail SMTP (Thymeleaf template)</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#14532d;color:#4ade80;">5</div>
+        <div>POST /api/auth/verify-otp → check Redis → activate user</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#14532d;color:#4ade80;">6</div>
+        <div>Return Access Token (15min) + Refresh Token (30 days)</div>
+      </div>
+    </div>
+
+    <!-- Order Flow -->
+    <div class="flow-card">
+      <h3 style="color:#fbbf24;">🛒 Place Order Flow</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b2c00;color:#fbbf24;">1</div>
+        <div>JWT Filter → validate token → load user from SecurityContext</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b2c00;color:#fbbf24;">2</div>
+        <div>POST /api/orders → validate cart items exist</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b2c00;color:#fbbf24;">3</div>
+        <div>Check stock with pessimistic lock → prevent overselling</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b2c00;color:#fbbf24;">4</div>
+        <div>Snapshot product price → create Order + OrderItems</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b2c00;color:#fbbf24;">5</div>
+        <div>Initiate Razorpay payment → return payment link</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b2c00;color:#fbbf24;">6</div>
+        <div>@Async → send order confirmation email to customer</div>
+      </div>
+    </div>
+
+    <!-- Payment Flow -->
+    <div class="flow-card">
+      <h3 style="color:#60a5fa;">💳 Payment Flow</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:#1e3a5f;color:#60a5fa;">1</div>
+        <div>Customer pays via Razorpay (UPI / Card / NetBanking)</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#1e3a5f;color:#60a5fa;">2</div>
+        <div>Razorpay calls POST /api/payments/webhook</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#1e3a5f;color:#60a5fa;">3</div>
+        <div>Verify webhook signature (prevent fake callbacks)</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#1e3a5f;color:#60a5fa;">4</div>
+        <div>Update Order status → CONFIRMED</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#1e3a5f;color:#60a5fa;">5</div>
+        <div>Reduce product stock in DB</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#1e3a5f;color:#60a5fa;">6</div>
+        <div>@Async → send payment receipt email</div>
+      </div>
+    </div>
+
+    <!-- JWT Flow -->
+    <div class="flow-card">
+      <h3 style="color:#f472b6;">🪙 JWT Token Flow</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b0764;color:#f472b6;">1</div>
+        <div>Login → verify BCrypt password match</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b0764;color:#f472b6;">2</div>
+        <div>Generate Access Token {email, role, userId} signed with SECRET</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b0764;color:#f472b6;">3</div>
+        <div>Generate Refresh Token → save to DB with 30d expiry</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b0764;color:#f472b6;">4</div>
+        <div>Every request → JWT Filter verifies signature (no DB hit)</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b0764;color:#f472b6;">5</div>
+        <div>Token expires → POST /auth/refresh → new access token</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:#3b0764;color:#f472b6;">6</div>
+        <div>Logout → blacklist token in Redis until expiry</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     BUILD PHASES
+═══════════════════════════════════════════ -->
+  <div class="section-title">Build Phases</div>
+  <div class="timeline">
+
+    <div class="phase">
+      <h4 style="color:#4ade80;">Phase 1 — Auth</h4>
+      <ul>
+        <li>User entity</li>
+        <li>Register + Login</li>
+        <li>JWT + Refresh</li>
+        <li>OTP verification</li>
+        <li>Email on register</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <h4 style="color:#60a5fa;">Phase 2 — Products</h4>
+      <ul>
+        <li>Category tree</li>
+        <li>Product CRUD</li>
+        <li>Image upload</li>
+        <li>Search + filter</li>
+        <li>Redis caching</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <h4 style="color:#fbbf24;">Phase 3 — Orders</h4>
+      <ul>
+        <li>Cart management</li>
+        <li>Address book</li>
+        <li>Place order</li>
+        <li>Order tracking</li>
+        <li>Order emails</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <h4 style="color:#f472b6;">Phase 4 — Payments</h4>
+      <ul>
+        <li>Razorpay integration</li>
+        <li>Webhook handler</li>
+        <li>Payment status</li>
+        <li>Refund flow</li>
+        <li>Invoice email</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <h4 style="color:#fb923c;">Phase 5 — DevOps</h4>
+      <ul>
+        <li>Dockerize app</li>
+        <li>GitHub Actions</li>
+        <li>Deploy AWS EC2</li>
+        <li>Kubernetes (EKS)</li>
+        <li>Terraform infra</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     TECH STACK
+═══════════════════════════════════════════ -->
+  <div class="section-title">Tech Stack</div>
+  <div class="stack-grid">
+    <div class="stack-item">
+      <div class="s-label">Language</div>
+      <div class="s-value">Java 21 (LTS)</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Framework</div>
+      <div class="s-value">Spring Boot 3.3.12</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Security</div>
+      <div class="s-value">Spring Security + JWT</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Database</div>
+      <div class="s-value">PostgreSQL 16</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Cache</div>
+      <div class="s-value">Redis 7</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Migrations</div>
+      <div class="s-value">Flyway</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Email</div>
+      <div class="s-value">JavaMailSender + Thymeleaf</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Payments</div>
+      <div class="s-value">Razorpay</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Storage</div>
+      <div class="s-value">AWS S3</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Docs</div>
+      <div class="s-value">SpringDoc OpenAPI</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Build</div>
+      <div class="s-value">Maven</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Container</div>
+      <div class="s-value">Docker + Compose</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">CI/CD</div>
+      <div class="s-value">GitHub Actions</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Cloud</div>
+      <div class="s-value">AWS EC2 / EKS / RDS</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">IaC</div>
+      <div class="s-value">Terraform</div>
+    </div>
+    <div class="stack-item">
+      <div class="s-label">Monitoring</div>
+      <div class="s-value">Prometheus + Grafana</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:30px;color:#334155;font-size:11px;">
+    NEXORA E-COMMERCE BACKEND — System Design v1.0
+  </div>
+
+</body>
+
+</html>
